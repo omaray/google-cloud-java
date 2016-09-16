@@ -62,4 +62,54 @@ public class DatastoreSnippets {
     // [END commitTransaction]
     return key;
   }
+
+  /**
+   * Example of rolling back a Transaction
+   */
+  // [TARGET rollback()]
+  public Key rollbackTransaction() {
+    // [START rollbackTransaction]
+    // create an entity
+    KeyFactory keyFactory = datastore.newKeyFactory().kind("someKind");
+    Key key = datastore.allocateId(keyFactory.newKey());
+    Entity entity = Entity.builder(key).set("description", "calling active()").build();
+
+    // add the entity and rollback
+    Transaction txn = datastore.newTransaction();
+    txn.put(entity);
+    txn.rollback();
+    // calling txn.commit() now would fail
+    // [END rollbackTransaction]
+    return key;
+  }
+
+  /**
+   * Example of verifying if a Transaction is active
+   */
+  // [TARGET active()]
+  public Key activeTransaction() {
+    // [START activeTransaction]
+    // create an entity
+    KeyFactory keyFactory = datastore.newKeyFactory().kind("someKind");
+    Key key = datastore.allocateId(keyFactory.newKey());
+    Entity entity = Entity.builder(key).set("description", "calling active()").build();
+
+    // create a transaction
+    Transaction txn = datastore.newTransaction();
+    // calling txn.active() now would return true
+    try {
+      // add the entity and commit
+      txn.put(entity);
+      txn.commit();
+    } finally {
+      // if committing succeeded
+      // then txn.active() will be false
+      if (txn.active()) {
+        // otherwise it's true and we need to rollback
+        txn.rollback();
+      }
+    }
+    // [END activeTransaction]
+    return key;
+  }
 }
